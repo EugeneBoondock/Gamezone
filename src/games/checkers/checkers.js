@@ -98,9 +98,9 @@ window.games.checkers = {
                                 allMoves = []; // Discard non-capture moves
                                 canCapture = true;
                             }
-                            allMoves.push({ from: { r, c }, moves: captures });
+                            allMoves.push({ from: { row: r, col: c }, moves: captures });
                         } else if (!canCapture && moves.length > 0) {
-                            allMoves.push({ from: { r, c }, moves });
+                            allMoves.push({ from: { row: r, col: c }, moves });
                         }
                     }
                 }
@@ -164,7 +164,7 @@ window.games.checkers = {
                 }
             } else {
                 const allPlayerMoves = getAllMoves(1, board);
-                const pieceMoves = allPlayerMoves.find(p => p.from.r === r && p.from.c === c);
+                const pieceMoves = allPlayerMoves.find(p => p.from.row === r && p.from.col === c);
                 if (pieceMoves) {
                     selectedPiece = { row: r, col: c, moves: pieceMoves.moves };
                     renderBoard();

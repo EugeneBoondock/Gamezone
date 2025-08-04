@@ -109,7 +109,7 @@ window.games.chess = {
             onDragStart: onDragStart,
             onDrop: onDrop,
             onSnapEnd: onSnapEnd,
-            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png'
+            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/merida/{piece}.png'
         };
         board = Chessboard(boardEl, config);
         updateStatus();
