@@ -1,13 +1,14 @@
 {
-    "functions": {
-      "index.ts": {
-        "runtime": "@vercel/bun@latest"
-      }
-    },
-    "rewrites": [
-      {
-        "source": "/(.*)",
-        "destination": "/index.ts"
-      }
-    ]
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@godsreveal/vercel-bun@0.2.4"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.ts"
+    }
+  ]
+}
