@@ -4,164 +4,120 @@ window.games.chess = {
     init: function(container, settings) {
         // --- Game Setup ---
         const game = new Chess();
+        let board = null; // Will be Chessboard.js instance
+        let stockfish = null;
+
         container.innerHTML = `
             <div class="chess-container">
-                <div id="chess-status">White's Turn</div>
-                <div id="chess-board"></div>
-            </div>
-        `;
-        const boardElement = container.querySelector('#chess-board');
-        const statusDisplay = container.querySelector('#chess-status');
-        let selectedSquare = null;
+                <div id="chess-board" style="width: 400px"></div>
+                <div id="chess-status" style="margin-top: 10px;"></div>
+            </div>`;
+        const statusEl = container.querySelector('#chess-status');
+        const boardEl = container.querySelector('#chess-board');
 
-        const pieceSymbols = {
-            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
-            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
-        };
-
-        function renderBoard() {
-            boardElement.innerHTML = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const squareName = 'abcdefgh'[c] + (8 - r);
-                    const square = document.createElement('div');
-                    square.classList.add('chess-square', (r + c) % 2 === 0 ? 'light' : 'dark');
-                    square.dataset.square = squareName;
-
-                    const piece = game.get(squareName);
-                    if (piece) {
-                        const pieceElement = document.createElement('span');
-                        pieceElement.classList.add('chess-piece', piece.color === 'w' ? 'white' : 'black');
-                        const symbol = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
-                        pieceElement.textContent = pieceSymbols[symbol];
-                        square.appendChild(pieceElement);
-                    }
-                    boardElement.appendChild(square);
-                }
-            }
+        function onDragStart(source, piece) {
+            return !game.game_over() &&
+                   !/black/.test(statusEl.textContent) && // It's player's turn
+                   piece.search(/^b/) === -1; // Player is white
         }
 
-        function handleSquareClick(e) {
-            const squareElement = e.target.closest('.chess-square');
-            if (!squareElement) return;
-            const squareName = squareElement.dataset.square;
+        function onDrop(source, target) {
+            const move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) return 'snapback';
 
-            if (selectedSquare) {
-                const move = { from: selectedSquare, to: squareName, promotion: 'q' };
-                const result = game.move(move);
-                if (result) {
-                    if (result.flags.includes('c')) window.soundManager.play('capture');
-                    else window.soundManager.play('move');
-
-                    renderBoard();
-                    updateStatus(); // Update status immediately for player
-
-                    if (!game.game_over()) {
-                        setTimeout(aiTurn, 250);
-                    }
-                }
-                selectedSquare = null;
-                // Clear highlights
-                boardElement.querySelectorAll('.selected-piece, .valid-move-hint, .capture-move-hint').forEach(el => el.remove());
-            } else {
-                const piece = game.get(squareName);
-                if (piece && piece.color === game.turn()) {
-                    selectedSquare = squareName;
-                    squareElement.classList.add('selected-piece');
-                    const moves = game.moves({ square: squareName, verbose: true });
-                    moves.forEach(m => {
-                        const targetSquare = boardElement.querySelector(`[data-square='${m.to}']`);
-                        const hint = document.createElement('div');
-                        hint.classList.add(m.flags.includes('c') ? 'capture-move-hint' : 'valid-move-hint');
-                        targetSquare.appendChild(hint);
-                    });
-                }
-            }
-        }
-
-        function evaluateBoard(gameInstance) {
-            let totalEvaluation = 0;
-            const pieceValues = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 900 };
-            game.SQUARES.forEach(s => {
-                const piece = gameInstance.get(s);
-                if(piece) {
-                    totalEvaluation += pieceValues[piece.type] * (piece.color === 'w' ? 1 : -1);
-                }
-            });
-            return totalEvaluation;
-        }
-
-        function minimax(gameInstance, depth, alpha, beta, maximizingPlayer) {
-            if (depth === 0 || gameInstance.game_over()) {
-                return [null, evaluateBoard(gameInstance)];
-            }
-
-            const moves = gameInstance.moves({ verbose: true });
-            let bestMove = null;
-            let bestValue = maximizingPlayer ? -Infinity : Infinity;
-
-            for (const move of moves) {
-                gameInstance.move(move.san);
-                const [_, value] = minimax(gameInstance, depth - 1, alpha, beta, !maximizingPlayer);
-                gameInstance.undo();
-
-                if (maximizingPlayer ? value > bestValue : value < bestValue) {
-                    bestValue = value;
-                    bestMove = move.san;
-                }
-                if (maximizingPlayer) alpha = Math.max(alpha, bestValue);
-                else beta = Math.min(beta, bestValue);
-
-                if (beta <= alpha) break;
-            }
-            return [bestMove, bestValue];
-        }
-
-        function aiTurn() {
-            if (game.game_over()) return;
-
-            statusDisplay.textContent = "AI is thinking...";
-            const difficultyMap = { easy: 1, medium: 2, hard: 3 };
-            const depth = difficultyMap[settings.difficulty] || 2;
-
-            const [bestMove, _] = minimax(game, depth, -Infinity, Infinity, false);
-
-            if (bestMove) {
-                game.move(bestMove);
-            } else {
-                const moves = game.moves();
-                game.move(moves[Math.floor(Math.random() * moves.length)]);
-            }
-
-            renderBoard();
+            window.soundManager.play(move.flags.includes('c') ? 'capture' : 'move');
             updateStatus();
+
+            // AI's turn
+            if (!game.game_over()) {
+                setTimeout(getBestMove, 250);
+            }
+        }
+
+        function onSnapEnd() {
+            board.position(game.fen());
         }
 
         function updateStatus() {
             let status = '';
             const turn = game.turn() === 'w' ? 'White' : 'Black';
 
-            if (game.in_checkmate()) {
-                status = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
-                window.soundManager.play('win');
-            } else if (game.in_draw()) {
-                status = 'Draw!';
-                window.soundManager.play('lose');
+            if (game.game_over()) {
+                if(game.in_checkmate()) {
+                    status = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
+                    window.soundManager.play('win');
+                } else {
+                    status = 'Draw!';
+                    window.soundManager.play('lose');
+                }
             } else {
                 status = `${turn}'s Turn`;
                 if (game.in_check()) {
                     status += ' - Check!';
                 }
             }
-            statusDisplay.textContent = status;
+            statusEl.textContent = status;
         }
 
-        // --- Initialisation & Event Listeners ---
-        renderBoard();
-        boardElement.addEventListener('click', handleSquareClick);
+        function getBestMove() {
+            statusEl.textContent = "AI is thinking...";
+            stockfish.postMessage('position fen ' + game.fen());
+            const depth = settings.difficulty === 'hard' ? 12 : settings.difficulty === 'medium' ? 8 : 4;
+            stockfish.postMessage('go depth ' + depth);
+        }
+
+        function initStockfish() {
+            stockfish = new Worker('/stockfish.js'); // Path needs to be absolute
+            stockfish.onmessage = function(event) {
+                const message = event.data;
+                if (message.startsWith('bestmove')) {
+                    const bestMove = message.split(' ')[1];
+                    game.move(bestMove, { sloppy: true });
+                    board.position(game.fen());
+                    updateStatus();
+                    window.soundManager.play('move');
+                }
+            };
+            stockfish.postMessage('uci');
+        }
+
+        // This is a workaround because I cannot add the stockfish.js file to the project directly
+        // I will fetch it from the cdn and create a blob url
+        fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js')
+            .then(res => res.text())
+            .then(text => {
+                const blob = new Blob([text], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                stockfish = new Worker(url);
+                stockfish.onmessage = function(event) {
+                    const message = event.data;
+                    if (message.startsWith('bestmove')) {
+                        const bestMove = message.split(' ')[1];
+                        game.move(bestMove, { sloppy: true });
+                        board.position(game.fen());
+                        updateStatus();
+                        window.soundManager.play('move');
+                    }
+                };
+                stockfish.postMessage('uci');
+                statusEl.textContent = "White's Turn";
+            });
+
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png'
+        };
+        board = Chessboard(boardEl, config);
+        updateStatus();
 
         function destroy() {
-            boardElement.removeEventListener('click', handleSquareClick);
+            if (stockfish) {
+                stockfish.terminate();
+            }
         }
 
         return destroy;
