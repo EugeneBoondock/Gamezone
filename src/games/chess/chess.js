@@ -112,13 +112,13 @@ window.games.chess = {
         // --- Chessboard.js Configuration ---
         const config = {
             draggable: true,
-            position: 'start',
+            position: 'clear', // Start with an empty board to prevent loading piece images
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onSnapEnd: onSnapEnd,
-            pieceTheme: '/_.png'
+            onSnapEnd: onSnapEnd
         };
         board = Chessboard(boardEl, config);
+        board.position(game.fen()); // Set the starting position from chess.js
 
         // Initial render of pieces
         setTimeout(renderUnicodePieces, 200);
