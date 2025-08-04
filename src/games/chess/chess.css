@@ -42,17 +42,35 @@
     background-color: #4a0e4e; /* Dark Purple */
 }
 
+.unicode-piece-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Allows clicks to go through to the square */
+}
+
 .chess-piece {
+    font-size: 44px;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
     cursor: grab;
 }
 
 .chess-piece.white {
     color: #f0f0f0;
-    text-shadow: 0 0 5px #000;
 }
 
 .chess-piece.black {
     color: #1a1a1a;
+}
+
+/* Override default chessboard.js pieces if they appear */
+.square-55d63 .chess-piece {
+    background-image: none !important;
 }
 
 .selected-piece {

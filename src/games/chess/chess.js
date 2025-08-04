@@ -4,21 +4,50 @@ window.games.chess = {
     init: function(container, settings) {
         // --- Game Setup ---
         const game = new Chess();
-        let board = null; // Will be Chessboard.js instance
+        let board = null;
         let stockfish = null;
 
         container.innerHTML = `
             <div class="chess-container">
-                <div id="chess-board" style="width: 400px"></div>
+                <div id="chess-board" style="width: 400px; position: relative;"></div>
                 <div id="chess-status" style="margin-top: 10px;"></div>
             </div>`;
         const statusEl = container.querySelector('#chess-status');
         const boardEl = container.querySelector('#chess-board');
 
+        // --- Rendering Unicode Pieces ---
+        const pieceSymbols = {
+            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
+            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
+        };
+
+        function renderUnicodePieces() {
+            // Clear existing unicode pieces
+            boardEl.querySelectorAll('.unicode-piece-container').forEach(e => e.remove());
+
+            const squares = game.board();
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = squares[r][c];
+                    if (piece) {
+                        const squareName = 'abcdefgh'[c] + (8 - r);
+                        const squareEl = boardEl.querySelector(`.square-${squareName}`);
+
+                        const pieceEl = document.createElement('div');
+                        pieceEl.classList.add('unicode-piece-container');
+
+                        const symbol = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+                        pieceEl.innerHTML = `<span class="chess-piece ${piece.color === 'w' ? 'white' : 'black'}">${pieceSymbols[symbol]}</span>`;
+
+                        squareEl.appendChild(pieceEl);
+                    }
+                }
+            }
+        }
+
+        // --- Event Handlers for chessboard.js ---
         function onDragStart(source, piece) {
-            return !game.game_over() &&
-                   !/black/.test(statusEl.textContent) && // It's player's turn
-                   piece.search(/^b/) === -1; // Player is white
+            return !game.game_over() && game.turn() === 'w' && piece.search(/^b/) === -1;
         }
 
         function onDrop(source, target) {
@@ -28,35 +57,34 @@ window.games.chess = {
             window.soundManager.play(move.flags.includes('c') ? 'capture' : 'move');
             updateStatus();
 
-            // AI's turn
             if (!game.game_over()) {
                 setTimeout(getBestMove, 250);
             }
         }
 
         function onSnapEnd() {
+            // Update the board position in chess.js, then render our pieces
             board.position(game.fen());
+            renderUnicodePieces();
         }
 
         function updateStatus() {
-            let status = '';
+            let statusText = '';
             const turn = game.turn() === 'w' ? 'White' : 'Black';
 
-            if (game.game_over()) {
-                if(game.in_checkmate()) {
-                    status = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
-                    window.soundManager.play('win');
-                } else {
-                    status = 'Draw!';
-                    window.soundManager.play('lose');
-                }
+            if (game.in_checkmate()) {
+                statusText = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
+                window.soundManager.play('win');
+            } else if (game.in_draw()) {
+                statusText = 'Draw!';
+                window.soundManager.play('lose');
             } else {
-                status = `${turn}'s Turn`;
+                statusText = `${turn}'s Turn`;
                 if (game.in_check()) {
-                    status += ' - Check!';
+                    statusText += ' - Check!';
                 }
             }
-            statusEl.textContent = status;
+            statusEl.textContent = statusText;
         }
 
         function getBestMove() {
@@ -66,23 +94,7 @@ window.games.chess = {
             stockfish.postMessage('go depth ' + depth);
         }
 
-        function initStockfish() {
-            stockfish = new Worker('/stockfish.js'); // Path needs to be absolute
-            stockfish.onmessage = function(event) {
-                const message = event.data;
-                if (message.startsWith('bestmove')) {
-                    const bestMove = message.split(' ')[1];
-                    game.move(bestMove, { sloppy: true });
-                    board.position(game.fen());
-                    updateStatus();
-                    window.soundManager.play('move');
-                }
-            };
-            stockfish.postMessage('uci');
-        }
-
-        // This is a workaround because I cannot add the stockfish.js file to the project directly
-        // I will fetch it from the cdn and create a blob url
+        // --- Stockfish Initialization ---
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js')
             .then(res => res.text())
             .then(text => {
@@ -95,29 +107,33 @@ window.games.chess = {
                         const bestMove = message.split(' ')[1];
                         game.move(bestMove, { sloppy: true });
                         board.position(game.fen());
+                        renderUnicodePieces();
                         updateStatus();
                         window.soundManager.play('move');
                     }
                 };
                 stockfish.postMessage('uci');
-                statusEl.textContent = "White's Turn";
+                updateStatus();
             });
 
+        // --- Chessboard.js Configuration ---
         const config = {
             draggable: true,
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
             onSnapEnd: onSnapEnd,
-            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/merida/{piece}.png'
+            // Use blank images for pieces, we will render our own
+            pieceTheme: '/_.png'
         };
         board = Chessboard(boardEl, config);
-        updateStatus();
 
+        // Initial render of pieces
+        setTimeout(renderUnicodePieces, 200);
+
+        // --- Cleanup ---
         function destroy() {
-            if (stockfish) {
-                stockfish.terminate();
-            }
+            if (stockfish) stockfish.terminate();
         }
 
         return destroy;
