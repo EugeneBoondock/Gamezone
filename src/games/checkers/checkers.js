@@ -31,7 +31,24 @@ window.games.checkers = {
         }
 
         function renderBoard() {
-            // ... (renderBoard logic remains the same)
+            boardElement.innerHTML = '';
+            for (let row = 0; row < boardSize; row++) {
+                for (let col = 0; col < boardSize; col++) {
+                    const square = document.createElement('div');
+                    square.classList.add('checkers-square', (row + col) % 2 === 0 ? 'light' : 'dark');
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+
+                    const pieceValue = boardState[row][col];
+                    if (pieceValue !== 0) {
+                        const piece = document.createElement('div');
+                        piece.classList.add('checkers-piece', `player${pieceValue > 2 ? pieceValue - 2 : pieceValue}`);
+                        if (pieceValue > 2) piece.classList.add('king');
+                        square.appendChild(piece);
+                    }
+                    boardElement.appendChild(square);
+                }
+            }
         }
 
         function getValidMoves(row, col, state) {
