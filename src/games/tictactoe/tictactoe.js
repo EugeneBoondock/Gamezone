@@ -60,14 +60,17 @@ window.games.tictactoe = {
             // Update UI
             cell.textContent = currentPlayer;
             cell.classList.add(currentPlayer.toLowerCase());
+            window.soundManager.play('move');
 
             // Check for game over
             if (checkWin()) {
                 statusDisplay.textContent = `Player ${currentPlayer} wins!`;
                 gameActive = false;
+                window.soundManager.play('win');
             } else if (checkDraw()) {
                 statusDisplay.textContent = 'Game is a draw!';
                 gameActive = false;
+                window.soundManager.play('lose');
             } else {
                 // Next turn
                 currentPlayer = currentPlayer === 'X' ? 'O' : 'X';

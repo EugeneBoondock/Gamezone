@@ -88,12 +88,14 @@ window.games.snake = {
             if (head.x === food.x && head.y === food.y) {
                 score++;
                 placeFood();
+                window.soundManager.play('capture');
             } else {
                 snake.pop();
             }
         }
 
         function gameOver() {
+            window.soundManager.play('lose');
             clearTimeout(gameLoopTimeout);
             document.removeEventListener('keydown', handleKeyDown);
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';

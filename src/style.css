@@ -57,7 +57,12 @@ header h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, opacity 0.5s ease;
+    opacity: 1;
+}
+
+#game-container.loading {
+    opacity: 0;
 }
 
 #game-container:hover {
@@ -93,40 +98,153 @@ footer {
     color: rgba(240, 240, 240, 0.6);
 }
 
-#difficulty-selector {
-    margin-top: 20px;
-}
-
-#difficulty-selector label {
-    margin-right: 10px;
-    font-size: 1em;
-    color: #f0f0f0;
-    text-shadow: 0 0 5px #ff00ff;
-}
-
-#difficulty-selector button {
+#settings-btn {
     background-color: transparent;
-    color: #ff00ff; /* Magenta */
-    border: 1px solid #ff00ff;
+    color: #ff00ff;
+    border: 2px solid #ff00ff;
     padding: 8px 20px;
-    margin: 0 5px;
+    margin-top: 15px;
     cursor: pointer;
-    border-radius: 20px;
+    border-radius: 50px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.8em;
+    font-weight: 700;
     transition: all 0.3s ease;
-    box-shadow: 0 0 5px #ff00ff;
 }
 
-#difficulty-selector button:hover {
+#settings-btn:hover {
     background-color: #ff00ff;
     color: #0c0a1a;
     box-shadow: 0 0 15px #ff00ff;
 }
 
-#difficulty-selector button.active {
-    background-color: #ff00ff;
+#settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+#settings-modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.modal-content {
+    background: #1e0322;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid #ff00ff;
+    box-shadow: 0 0 30px #ff00ff;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    color: #f0f0f0;
+}
+
+.modal-content h2 {
+    color: #00ffff;
+    margin-top: 0;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.setting-row label {
+    font-size: 1.1em;
+}
+
+.setting-row select {
+    background-color: #0c0a1a;
+    color: #f0f0f0;
+    border: 1px solid #00ffff;
+    border-radius: 5px;
+    padding: 8px;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* Toggle Switch CSS */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #00ffff;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 2px #00ffff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#close-settings-btn {
+    background-color: #00ffff;
     color: #0c0a1a;
-    box-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff;
-    font-weight: bold;
+    border: none;
+    padding: 12px 35px;
+    border-radius: 25px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+}
+
+#close-settings-btn:hover {
+    transform: scale(1.05);
 }

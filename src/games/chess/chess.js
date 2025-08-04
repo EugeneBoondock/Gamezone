@@ -3,6 +3,7 @@ window.games = window.games || {};
 window.games.chess = {
     init: function(container, difficulty) {
         // --- Game Setup ---
+        console.log("Chess library constructor:", typeof Chess);
         const game = new Chess();
         container.innerHTML = `
             <div class="chess-container">
@@ -50,6 +51,11 @@ window.games.chess = {
                 const move = { from: selectedSquare, to: squareName, promotion: 'q' };
                 const result = game.move(move, { sloppy: true });
                 if (result) {
+                    if (result.flags.includes('c')) {
+                        window.soundManager.play('capture');
+                    } else {
+                        window.soundManager.play('move');
+                    }
                     renderBoard();
                     setTimeout(aiTurn, 250);
                 }
@@ -74,13 +80,69 @@ window.games.chess = {
             updateStatus();
         }
 
+        function evaluateBoard(board) {
+            let totalEvaluation = 0;
+            const pieceValues = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    if (board[i][j]) {
+                        totalEvaluation += (pieceValues[board[i][j].type] || 0) * (board[i][j].color === 'w' ? 1 : -1);
+                    }
+                }
+            }
+            return totalEvaluation;
+        }
+
+        function minimax(game, depth, alpha, beta, maximizingPlayer) {
+            if (depth === 0 || game.game_over()) {
+                return [null, evaluateBoard(game.board())];
+            }
+
+            const moves = game.moves({ verbose: true });
+            let bestMove = null;
+            let bestValue = maximizingPlayer ? -Infinity : Infinity;
+
+            for (const move of moves) {
+                game.move(move.san);
+                const [_, value] = minimax(game, depth - 1, alpha, beta, !maximizingPlayer);
+                game.undo();
+
+                if (maximizingPlayer) {
+                    if (value > bestValue) {
+                        bestValue = value;
+                        bestMove = move.san;
+                    }
+                    alpha = Math.max(alpha, bestValue);
+                } else {
+                    if (value < bestValue) {
+                        bestValue = value;
+                        bestMove = move.san;
+                    }
+                    beta = Math.min(beta, bestValue);
+                }
+                if (beta <= alpha) {
+                    break;
+                }
+            }
+            return [bestMove, bestValue];
+        }
+
         function aiTurn() {
             if (game.game_over()) return;
 
-            const moves = game.moves();
-            // AI difficulty implementation can be very complex. This is a placeholder.
-            const move = moves[Math.floor(Math.random() * moves.length)];
-            game.move(move);
+            const difficultyMap = { easy: 1, medium: 2, hard: 3 };
+            const depth = difficultyMap[difficulty] || 2;
+
+            const [bestMove, _] = minimax(game, depth, -Infinity, Infinity, false);
+
+            if (bestMove) {
+                game.move(bestMove);
+            } else {
+                // Failsafe: if minimax returns no move, pick a random one
+                const moves = game.moves();
+                game.move(moves[Math.floor(Math.random() * moves.length)]);
+            }
+
             renderBoard();
             updateStatus();
         }
@@ -91,8 +153,10 @@ window.games.chess = {
 
             if (game.in_checkmate()) {
                 status = `Checkmate! ${turn === 'White' ? 'Black' : 'White'} wins.`;
+                window.soundManager.play('win');
             } else if (game.in_draw()) {
                 status = 'Draw!';
+                window.soundManager.play('lose');
             } else {
                 status = `${turn}'s Turn`;
                 if (game.in_check()) {

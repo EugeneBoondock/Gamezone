@@ -18,12 +18,7 @@
                 <button data-game="checkers">Checkers</button>
                 <button data-game="chess">Chess</button>
             </nav>
-            <div id="difficulty-selector">
-                <label>Difficulty:</label>
-                <button data-difficulty="easy" class="active">Easy</button>
-                <button data-difficulty="medium">Medium</button>
-                <button data-difficulty="hard">Hard</button>
-            </div>
+            <button id="settings-btn">Settings</button>
         </header>
         <main id="game-container">
             <h2>Select a game to start!</h2>
@@ -32,6 +27,36 @@
             <p>Powered by Bun & Jules</p>
         </footer>
     </div>
+
+    <div id="settings-modal" class="hidden">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="setting-row">
+                <label for="difficulty-setting">Difficulty:</label>
+                <select id="difficulty-setting">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label for="opponent-setting">Opponent:</label>
+                <select id="opponent-setting">
+                    <option value="ai">AI</option>
+                    <option value="human">Human</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label>Sound:</label>
+                <label class="switch">
+                    <input type="checkbox" id="sound-setting" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button id="close-settings-btn">Close</button>
+        </div>
+    </div>
+
     <script src="background.js"></script>
     <script src="script.js"></script>
 </body>
