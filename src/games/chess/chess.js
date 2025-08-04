@@ -9,45 +9,16 @@ window.games.chess = {
 
         container.innerHTML = `
             <div class="chess-container">
-                <div id="chess-board" style="width: 400px; position: relative;"></div>
+                <div id="chess-board" style="width: 400px"></div>
                 <div id="chess-status" style="margin-top: 10px;"></div>
             </div>`;
         const statusEl = container.querySelector('#chess-status');
         const boardEl = container.querySelector('#chess-board');
 
-        // --- Rendering Unicode Pieces ---
-        const pieceSymbols = {
-            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
-            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
-        };
-
-        function renderUnicodePieces() {
-            // Clear existing unicode pieces
-            boardEl.querySelectorAll('.unicode-piece-container').forEach(e => e.remove());
-
-            const squares = game.board();
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const piece = squares[r][c];
-                    if (piece) {
-                        const squareName = 'abcdefgh'[c] + (8 - r);
-                        const squareEl = boardEl.querySelector(`.square-${squareName}`);
-
-                        const pieceEl = document.createElement('div');
-                        pieceEl.classList.add('unicode-piece-container');
-
-                        const symbol = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
-                        pieceEl.innerHTML = `<span class="chess-piece ${piece.color === 'w' ? 'white' : 'black'}">${pieceSymbols[symbol]}</span>`;
-
-                        squareEl.appendChild(pieceEl);
-                    }
-                }
-            }
-        }
-
-        // --- Event Handlers for chessboard.js ---
         function onDragStart(source, piece) {
-            return !game.game_over() && game.turn() === 'w' && piece.search(/^b/) === -1;
+            return !game.game_over() &&
+                   game.turn() === 'w' &&
+                   piece.search(/^b/) === -1;
         }
 
         function onDrop(source, target) {
@@ -63,9 +34,7 @@ window.games.chess = {
         }
 
         function onSnapEnd() {
-            // Update the board position in chess.js, then render our pieces
             board.position(game.fen());
-            renderUnicodePieces();
         }
 
         function updateStatus() {
@@ -94,7 +63,6 @@ window.games.chess = {
             stockfish.postMessage('go depth ' + depth);
         }
 
-        // --- Stockfish Initialization ---
         fetch('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js')
             .then(res => res.text())
             .then(text => {
@@ -107,7 +75,6 @@ window.games.chess = {
                         const bestMove = message.split(' ')[1];
                         game.move(bestMove, { sloppy: true });
                         board.position(game.fen());
-                        renderUnicodePieces();
                         updateStatus();
                         window.soundManager.play('move');
                     }
@@ -116,24 +83,21 @@ window.games.chess = {
                 updateStatus();
             });
 
-        // --- Chessboard.js Configuration ---
         const config = {
             draggable: true,
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
             onSnapEnd: onSnapEnd,
-            // Use blank images for pieces, we will render our own
-            pieceTheme: '/_.png'
+            pieceTheme: 'https://cdn.jsdelivr.net/npm/@lichess-org/chessground@8.4.2/assets/pieces/merida/{piece}.svg'
         };
         board = Chessboard(boardEl, config);
+        updateStatus();
 
-        // Initial render of pieces
-        setTimeout(renderUnicodePieces, 200);
-
-        // --- Cleanup ---
         function destroy() {
-            if (stockfish) stockfish.terminate();
+            if (stockfish) {
+                stockfish.terminate();
+            }
         }
 
         return destroy;
