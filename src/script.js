@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameContainer.innerHTML = '<h2>Loading...</h2>';
 
         try {
-            const gamePath = `games/${gameName}/${gameName}`;
+            const gamePath = `/games/${gameName}/${gameName}`;
 
             // Load CSS
             const cssLink = document.createElement('link');
