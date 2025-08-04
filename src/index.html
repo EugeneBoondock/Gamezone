@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gaming Platform</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
 </head>
 <body>
     <canvas id="background-canvas"></canvas>
@@ -13,7 +14,16 @@
             <h1>2D Game Platform</h1>
             <nav id="game-menu">
                 <button data-game="tictactoe">Tic-Tac-Toe</button>
+                <button data-game="snake">Snake</button>
+                <button data-game="checkers">Checkers</button>
+                <button data-game="chess">Chess</button>
             </nav>
+            <div id="difficulty-selector">
+                <label>Difficulty:</label>
+                <button data-difficulty="easy" class="active">Easy</button>
+                <button data-difficulty="medium">Medium</button>
+                <button data-difficulty="hard">Hard</button>
+            </div>
         </header>
         <main id="game-container">
             <h2>Select a game to start!</h2>

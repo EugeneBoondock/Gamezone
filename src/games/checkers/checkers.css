@@ -1,0 +1,89 @@
+.checkers-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-family: 'Orbitron', sans-serif;
+}
+
+#checkers-status {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    color: #f0f0f0;
+    text-shadow: 0 0 8px #ff00ff;
+}
+
+#checkers-board {
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+    border: 3px solid #ff00ff;
+    box-shadow: 0 0 20px #ff00ff;
+}
+
+.checkers-square {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.checkers-square.light {
+    background-color: #4a0e4e; /* Dark Purple */
+}
+
+.checkers-square.dark {
+    background-color: #1e0322; /* Very Dark Purple */
+}
+
+.checkers-piece {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.checkers-piece.player1 {
+    background: radial-gradient(circle, #ff4136 60%, #c1352e 100%); /* Red */
+}
+
+.checkers-piece.player2 {
+    background: radial-gradient(circle, #00ffff 60%, #00a8a8 100%); /* Cyan */
+}
+
+.checkers-piece.king::after {
+    content: '👑';
+    font-size: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-shadow: 0 0 5px gold;
+}
+
+.selected {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px 5px #f0f0f0, inset 0 0 10px rgba(0,0,0,0.8);
+}
+
+.valid-move::before {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.5; }
+}

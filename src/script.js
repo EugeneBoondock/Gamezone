@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gameMenu = document.getElementById('game-menu');
     const gameContainer = document.getElementById('game-container');
+    const difficultySelector = document.getElementById('difficulty-selector');
     const initialContent = gameContainer.innerHTML;
 
+    let currentDifficulty = 'easy';
     let loadedGame = {
         name: null,
         css: null,
@@ -10,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
         destroy: null
     };
 
-    function loadGame(gameName) {
-        console.log(`Loading game: ${gameName}`);
+    function loadGame(gameName, difficulty) {
+        console.log(`Loading game: ${gameName} at difficulty: ${difficulty}`);
 
         if (loadedGame.name) {
             unloadGame();
@@ -34,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         script.onload = () => {
             gameContainer.innerHTML = '';
             if (window.games && window.games[gameName] && typeof window.games[gameName].init === 'function') {
-                const destroyCallback = window.games[gameName].init(gameContainer);
+                // Pass difficulty to the game's init function
+                const destroyCallback = window.games[gameName].init(gameContainer, difficulty);
                 loadedGame.destroy = destroyCallback;
             } else {
                 console.error(`Game "${gameName}" could not be loaded.`);
@@ -58,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`Unloading game: ${loadedGame.name}`);
 
-        if (loadedGame.destroy && typeof loadedGame.destroy === 'function') {
+        if (loadedGme.destroy && typeof loadedGame.destroy === 'function') {
             loadedGame.destroy();
         }
 
@@ -81,7 +84,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (gameName === loadedGame.name) {
                     unloadGame();
                 } else {
-                    loadGame(gameName);
+                    loadGame(gameName, currentDifficulty);
+                }
+            }
+        }
+    });
+
+    difficultySelector.addEventListener('click', (event) => {
+        if (event.target.tagName === 'BUTTON') {
+            const newDifficulty = event.target.dataset.difficulty;
+            if (newDifficulty && newDifficulty !== currentDifficulty) {
+                currentDifficulty = newDifficulty;
+                // Update active button
+                difficultySelector.querySelector('.active').classList.remove('active');
+                event.target.classList.add('active');
+
+                // If a game is currently loaded, reload it with the new difficulty
+                if (loadedGame.name) {
+                    loadGame(loadedGame.name, currentDifficulty);
                 }
             }
         }

@@ -92,3 +92,41 @@ footer {
     font-size: 0.9em;
     color: rgba(240, 240, 240, 0.6);
 }
+
+#difficulty-selector {
+    margin-top: 20px;
+}
+
+#difficulty-selector label {
+    margin-right: 10px;
+    font-size: 1em;
+    color: #f0f0f0;
+    text-shadow: 0 0 5px #ff00ff;
+}
+
+#difficulty-selector button {
+    background-color: transparent;
+    color: #ff00ff; /* Magenta */
+    border: 1px solid #ff00ff;
+    padding: 8px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8em;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 5px #ff00ff;
+}
+
+#difficulty-selector button:hover {
+    background-color: #ff00ff;
+    color: #0c0a1a;
+    box-shadow: 0 0 15px #ff00ff;
+}
+
+#difficulty-selector button.active {
+    background-color: #ff00ff;
+    color: #0c0a1a;
+    box-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+    font-weight: bold;
+}
