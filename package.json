@@ -1,16 +1,13 @@
 {
-  "name": "/app",
-  "module": "api/index.ts",
-  "type": "module",
-  "private": true,
+  "name": "gamezone",
+  "version": "1.0.0",
+  "description": "A 2D gaming platform",
+  "main": "api/index.js",
   "scripts": {
-    "build": "bun-vercel ./api/index.ts"
+    "start": "node api/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@godsreveal/vercel-bun": "^0.2.4"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
 }
