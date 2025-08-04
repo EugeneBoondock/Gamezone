@@ -7,54 +7,53 @@ document.addEventListener('DOMContentLoaded', () => {
         name: null,
         css: null,
         script: null,
-        // The game's JS should export a `destroy` function
         destroy: null
     };
 
-    async function loadGame(gameName) {
+    function loadGame(gameName) {
         console.log(`Loading game: ${gameName}`);
 
-        // If a game is already loaded, unload it first
         if (loadedGame.name) {
-            await unloadGame();
+            unloadGame();
         }
 
         gameContainer.innerHTML = '<h2>Loading...</h2>';
 
-        try {
-            const gamePath = `/games/${gameName}/${gameName}`;
+        const gamePath = `/games/${gameName}/${gameName}`;
 
-            // Load CSS
-            const cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = `${gamePath}.css`;
-            document.head.appendChild(cssLink);
+        // Load CSS
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = `${gamePath}.css`;
+        document.head.appendChild(cssLink);
 
-            // Load Game script as a module
-            const gameModule = await import(`${gamePath}.js`);
+        // Load Game script
+        const script = document.createElement('script');
+        script.src = `${gamePath}.js`;
 
-            // Clear loading message
+        script.onload = () => {
             gameContainer.innerHTML = '';
-
-            // The game module should export an `init` function
-            if (gameModule.init) {
-                // The init function should return a cleanup/destroy function
-                const destroyCallback = gameModule.init(gameContainer);
+            if (window.games && window.games[gameName] && typeof window.games[gameName].init === 'function') {
+                const destroyCallback = window.games[gameName].init(gameContainer);
                 loadedGame.destroy = destroyCallback;
             } else {
-                throw new Error(`Game "${gameName}" does not have an init function.`);
+                console.error(`Game "${gameName}" could not be loaded.`);
+                gameContainer.innerHTML = `<h2>Error: Could not load game "${gameName}".</h2>`;
             }
+        };
 
-            loadedGame.name = gameName;
-            loadedGame.css = cssLink;
+        script.onerror = () => {
+            gameContainer.innerHTML = `<h2>Error loading script for ${gameName}.</h2>`;
+        };
 
-        } catch (error) {
-            console.error(`Error loading game ${gameName}:`, error);
-            gameContainer.innerHTML = `<h2>Error loading ${gameName}. Check console for details.</h2>`;
-        }
+        document.body.appendChild(script);
+
+        loadedGame.name = gameName;
+        loadedGame.css = cssLink;
+        loadedGame.script = script;
     }
 
-    async function unloadGame() {
+    function unloadGame() {
         if (!loadedGame.name) return;
 
         console.log(`Unloading game: ${loadedGame.name}`);
@@ -66,8 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loadedGame.css) {
             loadedGame.css.remove();
         }
+        if (loadedGame.script) {
+            loadedGame.script.remove();
+        }
 
-        // Reset game container to its initial state
         gameContainer.innerHTML = initialContent;
 
         loadedGame = { name: null, css: null, script: null, destroy: null };
@@ -78,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const gameName = event.target.dataset.game;
             if (gameName) {
                 if (gameName === loadedGame.name) {
-                    // If the same game button is clicked, unload it
                     unloadGame();
                 } else {
                     loadGame(gameName);
